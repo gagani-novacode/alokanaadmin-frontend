@@ -1,3 +1,5 @@
+/* 
+  CUSTOMERS PAGE TEMPORARILY DISABLED - UNCOMMENT IF NEEDED
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { getCustomers, getCustomerOrders } from '../lib/api';
@@ -133,6 +135,21 @@ export default function CustomersPage() {
           </div>
         </div>
       )}
+    </Layout>
+  );
+}
+
+*/
+
+import Layout from '../components/Layout';
+
+export default function CustomersPage() {
+  return (
+    <Layout title="Customers Management">
+      <div className="card" style={{ textAlign: 'center', padding: '40px', color: '#64748b' }}>
+        <h3>Customers page is temporarily disabled.</h3>
+        <p style={{ marginTop: '8px' }}>Customer details can be viewed directly in the Tickets page.</p>
+      </div>
     </Layout>
   );
 }

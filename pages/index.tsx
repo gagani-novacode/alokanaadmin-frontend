@@ -78,21 +78,21 @@ export default function Dashboard() {
     <Layout title="Dashboard Overview">
       <div className="kpi-grid">
         <div className="kpi-card">
-          <span className="kpi-label">Total Tickets</span>
-          <span className="kpi-value">{data?.totalOrders || 0}</span>
-          <span className="kpi-sub">Across all statuses</span>
+          <span className="kpi-label">Total Paid Tickets</span>
+          <span className="kpi-value">{data?.totalPaidTickets ?? data?.totalTicketsSold ?? 0}</span>
+          <span className="kpi-sub">{data?.totalAvailableTickets || 0} available in stock</span>
+        </div>
+
+        <div className="kpi-card">
+          <span className="kpi-label">Total Paid Orders</span>
+          <span className="kpi-value">{data?.totalPaidOrders ?? data?.ordersByStatus?.PAID ?? 0}</span>
+          <span className="kpi-sub">Out of {data?.totalOrders || 0} total orders</span>
         </div>
 
         <div className="kpi-card">
           <span className="kpi-label">Total Revenue</span>
           <span className="kpi-value">LKR {(data?.totalRevenueLKR || 0).toLocaleString()}</span>
           <span className="kpi-sub">PAID tickets only</span>
-        </div>
-
-        <div className="kpi-card">
-          <span className="kpi-label">Tickets Sold</span>
-          <span className="kpi-value">{data?.totalTicketsSold || 0}</span>
-          <span className="kpi-sub">{data?.totalAvailableTickets || 0} available in stock</span>
         </div>
 
         <div className="kpi-card">

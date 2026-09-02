@@ -1,42 +1,69 @@
 import { useEffect, useState } from 'react';
 import Layout from '../components/Layout';
 import { getLogs, getLogsSummary } from '../lib/api';
-import { Search } from 'lucide-react';
+import { Search, RotateCcw, Filter } from 'lucide-react';
 
 export default function LogsPage() {
   const [logs, setLogs] = useState<any[]>([]);
   const [summary, setSummary] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+
+  // Form input state
   const [level, setLevel] = useState('');
   const [context, setContext] = useState('');
   const [message, setMessage] = useState('');
+  const [customerName, setCustomerName] = useState('');
+
+  // Active filters sent to API
+  const [activeFilters, setActiveFilters] = useState({
+    level: '',
+    context: '',
+    message: '',
+    customerName: '',
+  });
+
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalLogs, setTotalLogs] = useState(0);
 
-  const fetchLogs = () => {
+  const fetchLogs = (filterParams = activeFilters, targetPage = page) => {
     setLoading(true);
-    getLogs({ level, context, message, page, limit: 30 })
+    getLogs({ ...filterParams, page: targetPage, limit: 30 })
       .then((res) => {
         if (res.success) {
-          setLogs(res.data);
+          setLogs(res.data || []);
           setTotalPages(res.totalPages || 1);
+          setTotalLogs(res.total || 0);
         }
       })
       .finally(() => setLoading(false));
   };
 
   useEffect(() => {
-    getLogsSummary().then(res => { if (res.success) setSummary(res.data); });
+    getLogsSummary().then((res) => {
+      if (res.success) setSummary(res.data);
+    });
   }, []);
 
   useEffect(() => {
-    fetchLogs();
-  }, [level, page]);
+    fetchLogs(activeFilters, page);
+  }, [page, activeFilters]);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleApplyFilters = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const newFilters = { level, context, message, customerName };
     setPage(1);
-    fetchLogs();
+    setActiveFilters(newFilters);
+  };
+
+  const handleReset = () => {
+    const defaultFilters = { level: '', context: '', message: '', customerName: '' };
+    setLevel('');
+    setContext('');
+    setMessage('');
+    setCustomerName('');
+    setPage(1);
+    setActiveFilters(defaultFilters);
   };
 
   return (
@@ -62,13 +89,22 @@ export default function LogsPage() {
         </div>
       )}
 
-      <form onSubmit={handleSearch} className="filter-bar">
+      <form onSubmit={handleApplyFilters} className="filter-bar" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
+        <input
+          type="text"
+          className="input-field"
+          placeholder="Filter by Customer Name..."
+          value={customerName}
+          onChange={(e) => setCustomerName(e.target.value)}
+          style={{ minWidth: '180px' }}
+        />
         <input
           type="text"
           className="input-field"
           placeholder="Search log message..."
           value={message}
           onChange={(e) => setMessage(e.target.value)}
+          style={{ minWidth: '180px' }}
         />
         <input
           type="text"
@@ -76,15 +112,27 @@ export default function LogsPage() {
           placeholder="Filter context..."
           value={context}
           onChange={(e) => setContext(e.target.value)}
+          style={{ minWidth: '140px' }}
         />
-        <select className="select-field" value={level} onChange={(e) => { setLevel(e.target.value); setPage(1); }}>
+        <select
+          className="select-field"
+          value={level}
+          onChange={(e) => setLevel(e.target.value)}
+          style={{ minWidth: '130px' }}
+        >
           <option value="">All Levels</option>
           <option value="info">info</option>
           <option value="warn">warn</option>
           <option value="error">error</option>
           <option value="debug">debug</option>
         </select>
-        <button type="submit" className="btn"><Search size={16} /> Search</button>
+        
+        <button type="submit" className="btn" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <Filter size={16} /> Apply Filters
+        </button>
+        <button type="button" className="btn btn-secondary" onClick={handleReset} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <RotateCcw size={16} /> Reset
+        </button>
       </form>
 
       {loading ? (
@@ -103,20 +151,30 @@ export default function LogsPage() {
               </tr>
             </thead>
             <tbody>
-              {logs.map((log) => (
-                <tr key={log._id}>
-                  <td style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{new Date(log.timestamp || log.createdAt).toLocaleString()}</td>
-                  <td><span className={`badge badge-${log.level}`}>{ (log.level || 'info').toUpperCase() }</span></td>
-                  <td><strong>{log.context || '-'}</strong></td>
-                  <td style={{ fontWeight: 500 }}>{log.message}</td>
-                  <td>{log.customerFullName || '-'}</td>
-                  <td style={{ fontFamily: 'monospace', fontSize: '12px' }}>{log.orderId || '-'}</td>
+              {logs.length === 0 ? (
+                <tr>
+                  <td colSpan={6} style={{ textAlign: 'center', padding: '24px' }}>No logs found matching filters</td>
                 </tr>
-              ))}
+              ) : (
+                logs.map((log) => (
+                  <tr key={log._id}>
+                    <td style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                      {new Date(log.timestamp || log.createdAt).toLocaleString()}
+                    </td>
+                    <td>
+                      <span className={`badge badge-${log.level}`}>{(log.level || 'info').toUpperCase()}</span>
+                    </td>
+                    <td><strong>{log.context || '-'}</strong></td>
+                    <td style={{ fontWeight: 500 }}>{log.message}</td>
+                    <td>{log.customerFullName || log.meta?.customerName || log.meta?.customerEmail || '-'}</td>
+                    <td style={{ fontFamily: 'monospace', fontSize: '12px' }}>{log.orderId || '-'}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
           <div className="pagination">
-            <span>Page {page} of {totalPages}</span>
+            <span>Page {page} of {totalPages} (Total: {totalLogs} logs)</span>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button className="btn" disabled={page <= 1} onClick={() => setPage(p => Math.max(1, p - 1))}>Previous</button>
               <button className="btn" disabled={page >= totalPages} onClick={() => setPage(p => Math.min(totalPages, p + 1))}>Next</button>
