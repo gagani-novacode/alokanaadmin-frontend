@@ -139,7 +139,7 @@ export default function OrdersPage() {
         </button>
       </form>
 
-      <div style={{ margin: '14px 0', padding: '10px 14px', backgroundColor: 'var(--card-bg, #ffffff)', borderRadius: '8px', border: '1px solid var(--border-color, #e2e8f0)', display: 'flex', gap: '20px', alignItems: 'center', fontWeight: '500' }}>
+      <div className="summary-row" style={{ margin: '14px 0', padding: '10px 14px', backgroundColor: 'var(--card-bg, #ffffff)', borderRadius: '8px', border: '1px solid var(--border-color, #e2e8f0)', display: 'flex', gap: '20px', alignItems: 'center', fontWeight: '500', flexWrap: 'wrap' }}>
         <span>Filtered Count: <strong>{totalOrders}</strong> Orders</span>
         <span style={{ borderLeft: '1px solid #cbd5e1', paddingLeft: '20px' }}>Total Tickets Purchased: <strong>{totalFilteredTickets}</strong> Tickets</span>
       </div>
