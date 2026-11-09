@@ -1,0 +1,8 @@
+{
+    "name": "alokanaadmin-frontend",
+    "compatibility_date": "2025-09-15",
+    "assets": {
+        "directory": "./out",
+        "not_found_handling": "single-page-application"
+    }
+}
